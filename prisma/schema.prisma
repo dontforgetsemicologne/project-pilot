@@ -1,74 +1,218 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
-    provider = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-    provider = "postgresql"
-    // NOTE: When using mysql or sqlserver, uncomment the @db.Text annotations in model Account below
-    // Further reading:
-    // https://next-auth.js.org/adapters/prisma#create-the-prisma-schema
-    // https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#string
-    url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
-model Post {
-    id        Int      @id @default(autoincrement())
-    name      String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+// User and Authentication Models
+model User {
+  id              String         @id @default(cuid())
+  name            String?
+  email           String         @unique
+  emailVerified   DateTime?
+  image           String?
+  role            String         @default("USER")
+  department      String?
+  preferences     Json?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
 
-    createdBy   User   @relation(fields: [createdById], references: [id])
-    createdById String
+  // Auth relations
+  accounts        Account[]
+  sessions        Session[]
+  authenticators  Authenticator[]
 
-    @@index([name])
+  // Project management relations
+  assignedTasks   Task[]         @relation("AssignedTo")
+  createdTasks    Task[]         @relation("CreatedBy")
+  teamMemberships Team[]         @relation("TeamMembers")
+  teamLeading     Team[]         @relation("TeamLead")
+  comments        Comment[]
+  projects        Project[]      @relation("ProjectMembers")
+  ownedProjects   Project[]      @relation("ProjectOwner")
+
+  @@index([email])
 }
 
-// Necessary for Next auth
 model Account {
-    id                       String  @id @default(cuid())
-    userId                   String
-    type                     String
-    provider                 String
-    providerAccountId        String
-    refresh_token            String? // @db.Text
-    access_token             String? // @db.Text
-    expires_at               Int?
-    token_type               String?
-    scope                    String?
-    id_token                 String? // @db.Text
-    session_state            String?
-    user                     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-    refresh_token_expires_in Int?
+  id                String   @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?  @db.Text
+  access_token      String?  @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?  @db.Text
+  session_state     String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
-    @@unique([provider, providerAccountId])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
 }
 
 model Session {
-    id           String   @id @default(cuid())
-    sessionToken String   @unique
-    userId       String
-    expires      DateTime
-    user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-model User {
-    id            String    @id @default(cuid())
-    name          String?
-    email         String?   @unique
-    emailVerified DateTime?
-    image         String?
-    accounts      Account[]
-    sessions      Session[]
-    posts         Post[]
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model VerificationToken {
-    identifier String
-    token      String   @unique
-    expires    DateTime
+  identifier String
+  token      String   @unique
+  expires    DateTime
 
-    @@unique([identifier, token])
+  @@id([identifier, token])
+  @@index([identifier])
+}
+
+model Authenticator {
+  id                    String  @id @default(cuid())
+  credentialID          String  @unique
+  userId                String
+  providerAccountId     String
+  credentialPublicKey   String
+  counter               Int
+  credentialDeviceType  String
+  credentialBackedUp    Boolean
+  transports           String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// Project Management Models
+model Project {
+  id          String   @id @default(cuid())
+  name        String
+  description String?  @db.Text
+  status      Status   @default(ACTIVE)
+  startDate   DateTime
+  endDate     DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  ownerId     String
+
+  // Relations
+  owner       User     @relation("ProjectOwner", fields: [ownerId], references: [id])
+  members     User[]   @relation("ProjectMembers")
+  teams       Team[]
+  tasks       Task[]
+
+  @@index([ownerId])
+}
+
+model Team {
+  id          String   @id @default(cuid())
+  name        String
+  description String?  @db.Text
+  leadId      String
+  projectId   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  lead        User     @relation("TeamLead", fields: [leadId], references: [id])
+  project     Project  @relation(fields: [projectId], references: [id])
+  members     User[]   @relation("TeamMembers")
+  tasks       Task[]
+
+  @@index([leadId])
+  @@index([projectId])
+}
+
+model Task {
+  id          String     @id @default(cuid())
+  title       String
+  description String?    @db.Text
+  status      TaskStatus @default(PENDING)
+  priority    Priority   @default(MEDIUM)
+  startDate   DateTime?
+  deadline    DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  // Foreign keys
+  createdById String
+  teamId      String
+  projectId   String
+
+  // Relations
+  createdBy   User      @relation("CreatedBy", fields: [createdById], references: [id])
+  team        Team      @relation(fields: [teamId], references: [id])
+  project     Project   @relation(fields: [projectId], references: [id])
+  assignees   User[]    @relation("AssignedTo")
+  tags        Tag[]
+  comments    Comment[]
+
+  @@index([createdById])
+  @@index([teamId])
+  @@index([projectId])
+}
+
+model Tag {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  color       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tasks       Task[]
+
+  @@index([name])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  taskId    String
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  task      Task     @relation(fields: [taskId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([taskId])
+  @@index([userId])
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  REVIEW
+  COMPLETED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum Status {
+  ACTIVE
+  ON_HOLD
+  COMPLETED
+  ARCHIVED
 }
