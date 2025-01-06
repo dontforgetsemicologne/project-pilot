@@ -28,12 +28,7 @@ export default async function AppSidebar({ ...props }: React.ComponentProps<type
 
     return (
         <Sidebar {...props}>
-            <SidebarHeader className="h-16 border-b border-sidebar-border">
-                <NavUser 
-                    name={currentUser.name} 
-                    email={currentUser.email}
-                    avatar={currentUser.avatar}
-                />
+            <SidebarHeader className="h-16">
             </SidebarHeader>
             <SidebarContent>
                 <SidebarGroup>
@@ -58,13 +53,12 @@ export default async function AppSidebar({ ...props }: React.ComponentProps<type
                     </SidebarGroupContent>
                 </SidebarGroup>
             </SidebarContent>
-            <SidebarFooter>
-                <SidebarMenu>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                </SidebarMenu>
+            <SidebarFooter className="h-16">
+                <NavUser 
+                    name={currentUser.name} 
+                    email={currentUser.email}
+                    avatar={currentUser.avatar}
+                />
             </SidebarFooter>
             <SidebarRail />
         </Sidebar>
