@@ -13,8 +13,8 @@ import {
 
 export const data = {
     nav: [
-        { name: "Home", icon: Home },
-        { name: "Appearance", icon: Paintbrush },
+        { name: "Home", icon: Home, href: '/' },
+        { name: "Project", icon: Paintbrush, href:'/projects' },
         { name: "Messages & media", icon: MessageCircle },
         { name: "Language & region", icon: Globe },
         { name: "Accessibility", icon: Keyboard },
@@ -25,3 +25,14 @@ export const data = {
         { name: "Advanced", icon: Settings },
     ]
 }
+
+const dashboardItems = [
+    {
+        name: "Home",
+        icon: Home,
+        href: "/",
+    },
+    {
+        
+    }
+]

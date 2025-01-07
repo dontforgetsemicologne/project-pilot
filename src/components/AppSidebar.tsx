@@ -14,8 +14,8 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
-  SidebarSeparator,
 } from "@/components/ui/sidebar"
+import NavProjects from "@/components/NavProjects";
 
 
 export default async function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -50,6 +50,10 @@ export default async function AppSidebar({ ...props }: React.ComponentProps<type
                                 ))
                             }
                         </SidebarMenu>
+                        <NavProjects 
+                            userId={session?.user.id!} 
+                            userName={session?.user.name! ?? ""}
+                        />
                     </SidebarGroupContent>
                 </SidebarGroup>
             </SidebarContent>

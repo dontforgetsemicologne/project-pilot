@@ -11,12 +11,6 @@ export default async function DashBoardLayout({
     children
 }: { children: React.ReactNode }) {
     const session = await auth();
-
-    const navigation = [
-        { title: "Partners", path: "javascript:void(0)" },
-        { title: "Customers", path: "javascript:void(0)" },
-        { title: "Team", path: "javascript:void(0)" },
-      ];
     if (session?.user){
         return(
             <SidebarProvider>
