@@ -69,4 +69,32 @@ export const teamRouter = createTRPCRouter({
                 },
             });
         }),
+    getAll: protectedProcedure.query(({ ctx }) => {
+            return ctx.db.team.findMany({
+                where: { 
+                    OR: [
+                        { leadId: ctx.session.user.id },
+                        { members: { some: { id: ctx.session.user.id } } },
+                    ], 
+                },
+            })
+        }),
+    
+    getById: protectedProcedure
+        .input(z.object({ id: idSchema }))
+        .query(({ ctx, input }) => {
+            return ctx.db.team.findFirst({
+                where: {
+                    id: input.id,
+                    OR: [
+                        { leadId: ctx.session.user.id },
+                        { members: { some: { id: ctx.session.user.id } } },
+                    ],
+                },
+                include: {
+                    members: true
+                }
+            });
+        }),
+
   });

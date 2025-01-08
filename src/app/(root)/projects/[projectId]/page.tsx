@@ -11,12 +11,6 @@ import {
   CardContent 
 } from "@/components/ui/card";
 
-interface ProjectPageProps {
-  params: { 
-    projectId: string 
-  };
-}
-
 export default function ProjectPage() {
   const params = useParams();
   const projectId = params.projectId as string;

@@ -16,6 +16,8 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 import NavProjects from "@/components/NavProjects";
+import NavTasks from "./NavTasks";
+import NavTeams from "./NavTeams";
 
 
 export default async function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -27,7 +29,7 @@ export default async function AppSidebar({ ...props }: React.ComponentProps<type
     };
 
     return (
-        <Sidebar {...props}>
+        <Sidebar collapsible="icon" {...props}>
             <SidebarHeader className="h-16">
             </SidebarHeader>
             <SidebarContent>
@@ -54,6 +56,8 @@ export default async function AppSidebar({ ...props }: React.ComponentProps<type
                             userId={session?.user.id!} 
                             userName={session?.user.name! ?? ""}
                         />
+                        <NavTasks/>
+                        <NavTeams/>
                     </SidebarGroupContent>
                 </SidebarGroup>
             </SidebarContent>
