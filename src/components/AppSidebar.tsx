@@ -30,7 +30,7 @@ export default async function AppSidebar({ ...props }: React.ComponentProps<type
 
     return (
         <Sidebar collapsible="icon" {...props}>
-            <SidebarHeader className="h-16">
+            <SidebarHeader>
             </SidebarHeader>
             <SidebarContent>
                 <SidebarGroup>

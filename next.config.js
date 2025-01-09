@@ -10,6 +10,12 @@ const config = {
         domains: [
             "api.microlink.io", // Microlink Image Preview
         ],
+        remotePatterns: [
+            {
+                protocol: "https",
+                hostname: "avatars.githubusercontent.com",
+            },
+        ]
     },
 };
 
