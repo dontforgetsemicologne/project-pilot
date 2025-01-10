@@ -31,6 +31,11 @@ interface DateTimePickerProps {
   minDate?: Date;
 }
 
+type TimeComponents = {
+  hours: number;
+  minutes: number;
+};
+
 export default function DateTimePicker({ 
   name, 
   label,
@@ -42,18 +47,21 @@ export default function DateTimePicker({
   const [date, setDate] = useState<Date | null>(null);
   const form = useFormContext();
 
-  const parseTimeString = (timeString: string): [number, number] => {
-    const [hoursStr, minutesStr] = timeString.split(':');
-    const hours = parseInt(hoursStr ?? '0');
-    const minutes = parseInt(minutesStr ?? '0');
-    return [hours, minutes];
+  const parseTimeString = (timeString: string): TimeComponents => {
+    const parts = timeString.split(':');
+    const hoursStr = parts[0] ?? '0';
+    const minutesStr = parts[1] ?? '0';
+    return {
+      hours: Number.parseInt(hoursStr, 10),
+      minutes: Number.parseInt(minutesStr, 10),
+    };
   };
 
   const isTimeDisabled = (timeString: string): boolean => {
     if (!minDate || !date) return false;
     
     if (isSameDay(date, minDate)) {
-      const [hours, minutes] = parseTimeString(timeString);
+      const { hours, minutes } = parseTimeString(timeString);
       const minTime = minDate.getHours() * 60 + minDate.getMinutes();
       const currentTime = hours * 60 + minutes;
       return currentTime < minTime;
@@ -105,7 +113,7 @@ export default function DateTimePicker({
                   onSelect={(selectedDate: Date | undefined) => {
                     if (selectedDate) {
                       const newTime = isSameDay(selectedDate, minDate!) ? getInitialValidTime() : time;
-                      const [hours, minutes] = parseTimeString(newTime);
+                      const { hours, minutes } = parseTimeString(newTime);
                       selectedDate.setHours(hours, minutes);
                       setDate(selectedDate);
                       setTime(newTime);
@@ -144,7 +152,7 @@ export default function DateTimePicker({
                 onValueChange={(newTime: string) => {
                   setTime(newTime);
                   if (date || value) {
-                    const [hours, minutes] = parseTimeString(newTime);
+                    const { hours, minutes } = parseTimeString(newTime);
                     const newDate = new Date(date?.getTime() ?? (value as Date).getTime());
                     newDate.setHours(hours, minutes);
                     setDate(newDate);
