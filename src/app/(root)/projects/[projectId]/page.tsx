@@ -34,7 +34,7 @@ export default function ProjectPage() {
             <div>
               <h3 className="text-xl font-semibold mb-4">Project Details</h3>
               <div className="space-y-2">
-                <p>Start Date: {getProject.data?.startDate?.toLocaleDateString() || "Not available"}</p>
+                <p>Start Date: {getProject.data?.startDate?.toLocaleDateString() ?? "Not available"}</p>
                 {getProject.data?.endDate && (
                   <p>End Date: {getProject.data?.endDate.toLocaleDateString()}</p>
                 )}

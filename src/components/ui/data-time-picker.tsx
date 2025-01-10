@@ -48,7 +48,7 @@ export default function DateTimePicker({
     if (isSameDay(date, minDate)) {
       const [hours, minutes] = timeString.split(':').map(Number);
       const minTime = minDate.getHours() * 60 + minDate.getMinutes();
-      const currentTime = hours! * 60 + minutes!;
+      const currentTime = (hours ?? 0) * 60 + (minutes ?? 0);
       return currentTime < minTime;
     }
     return false;
@@ -98,7 +98,7 @@ export default function DateTimePicker({
                   selected={date ?? value}
                   onSelect={(selectedDate: Date | undefined) => {
                     if (selectedDate) {
-                      const newTime = isSameDay(selectedDate, minDate as Date) ? getInitialValidTime() : time;
+                      const newTime = isSameDay(selectedDate, minDate!) ? getInitialValidTime() : time;
                       const [hours, minutes] = newTime.split(":");
                       selectedDate.setHours(
                         parseInt(hours ?? '0'),

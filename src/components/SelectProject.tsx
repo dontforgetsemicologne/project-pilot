@@ -106,7 +106,7 @@ export default function ProjectUserSelect() {
 
     const selectableUsers = selectedProject?.members.filter(
         user => !selectedUsers.some(selectedUser => selectedUser.id === user.id)
-    ) || [];
+    ) ?? [];
 
     return (
         <div className="space-y-4">

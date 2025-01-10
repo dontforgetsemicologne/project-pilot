@@ -32,15 +32,18 @@ export default function ProfileSettingForm({ id }: { id: string }) {
         }
     });
 
-    const onSubmit = async(data: FormValues) => {
+    const onSubmit = (data: FormValues) => {
         const normalizedData: FormValues = {
             name: ( data.name === '' ) ? getUser.data?.name ?? "" : data.name,
             role: ( data.role === '' ) ? getUser.data?.role ?? "" : data.role,
             department: ( data.department === '' ) ? getUser.data?.department ?? "" : data.department,
 
         }
-        await updateProfile.mutate(normalizedData);
-        router.push('/users');
+        updateProfile.mutate(normalizedData, {
+            onSuccess: () => {
+                router.push("/users");
+            }
+        });
     }
 
     return (
@@ -54,7 +57,7 @@ export default function ProfileSettingForm({ id }: { id: string }) {
                             transition-colors shadow-sm"
                     />
                     <AvatarFallback className="bg-zinc-100 dark:bg-zinc-900">
-                        {getUser?.data?.name?.slice(0, 2)?.toUpperCase() || "US"}
+                        {getUser?.data?.name?.slice(0, 2)?.toUpperCase() ?? "US"}
                     </AvatarFallback>
                 </Avatar>
             </div>
