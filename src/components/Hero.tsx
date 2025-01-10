@@ -64,6 +64,8 @@ export default function Hero() {
                             src="https://farmui.vercel.app/dashboard.png"
                             className="w-full shadow-lg rounded-lg border"
                             alt="Dashboard preview"
+                            width={5000}
+                            height={5000}
                         />
                     </div>
                 </div>
