@@ -6,6 +6,7 @@ import { LinkPreview } from "@/components/ui/link-preview"
 
 import RetroGrid from "@/components/RetroGrid"
 import DialogLoginForm from "@/components/DialogLoginForm"
+import Image from "next/image"
 
 export default function Hero() {
     return (
@@ -59,7 +60,7 @@ export default function Hero() {
                         </div>
                     </div>
                     <div className="mt-14 mx-auto max-w-full px-4">
-                        <img
+                        <Image
                             src="https://farmui.vercel.app/dashboard.png"
                             className="w-full shadow-lg rounded-lg border"
                             alt="Dashboard preview"

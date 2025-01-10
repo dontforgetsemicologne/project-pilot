@@ -1,22 +1,12 @@
 'use client'
 
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-
-import {
     SidebarGroup,
     SidebarGroupLabel,
     SidebarMenu,
-    SidebarMenuAction,
     SidebarMenuSub,
     SidebarMenuButton,
     SidebarMenuItem,
-    useSidebar,
     SidebarMenuSubItem,
     SidebarMenuSubButton,
 } from "@/components/ui/sidebar"
@@ -27,15 +17,12 @@ import {
     CollapsibleTrigger,
 } from "@/components/ui/collapsible"
 
-import { Button } from "@/components/ui/button";
-
 import { api } from "@/trpc/react";
 
 import Link from "next/link";
 import CreateTask from "./CreateTask";
 
 export default function NavTasks() {
-    const { isMobile } = useSidebar();
     const getProjects = api.project.getAll.useQuery();
     const getTasks = api.task.getAll.useQuery({});
     const getProjectTasks = (projectId: string) => {

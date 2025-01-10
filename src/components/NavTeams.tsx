@@ -4,11 +4,9 @@ import {
     SidebarGroup,
     SidebarGroupLabel,
     SidebarMenu,
-    SidebarMenuAction,
     SidebarMenuSub,
     SidebarMenuButton,
     SidebarMenuItem,
-    useSidebar,
     SidebarMenuSubItem,
     SidebarMenuSubButton,
 } from "@/components/ui/sidebar"
@@ -24,7 +22,6 @@ import { api } from "@/trpc/react";
 import Link from "next/link";
 
 export default function NavTeams() {
-    const { isMobile } = useSidebar();
     const getProjects = api.project.getAll.useQuery();
     const getTeams = api.team.getAll.useQuery();
     const getProjectTeams = (projectId: string) => {

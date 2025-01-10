@@ -68,7 +68,7 @@ export default function DateTimePicker({
       <FormField
         control={form.control}
         name={name}
-        render={({ field }) => (
+        render={({ field: { value, onChange } }) => (
           <FormItem className="flex flex-col w-full">
             {label && <FormLabel>{label}</FormLabel>}
             <Popover open={isOpen} onOpenChange={setIsOpen}>
@@ -78,12 +78,12 @@ export default function DateTimePicker({
                     variant={"outline"}
                     className={cn(
                       "w-full font-normal",
-                      !field.value && "text-muted-foreground"
+                      !value && "text-muted-foreground"
                     )}
                     type='button'
                   >
-                    {field.value ? (
-                      `${format(field.value, "PPP")}, ${time}`
+                    {value ? (
+                      `${format(value, "PPP")}, ${time}`
                     ) : (
                       <span>Pick a date</span>
                     )}
@@ -95,27 +95,27 @@ export default function DateTimePicker({
                 <Calendar
                   mode="single"
                   captionLayout="dropdown"
-                  selected={date || field.value}
-                  onSelect={(selectedDate) => {
+                  selected={date ?? value}
+                  onSelect={(selectedDate: Date | undefined) => {
                     if (selectedDate) {
-                      const newTime = isSameDay(selectedDate, minDate!) ? getInitialValidTime() : time;
+                      const newTime = isSameDay(selectedDate, minDate as Date) ? getInitialValidTime() : time;
                       const [hours, minutes] = newTime.split(":");
                       selectedDate.setHours(
-                        parseInt(hours!),
-                        parseInt(minutes!)
+                        parseInt(hours ?? '0'),
+                        parseInt(minutes ?? '0')
                       );
                       setDate(selectedDate);
                       setTime(newTime);
-                      field.onChange(selectedDate);
+                      onChange(selectedDate);
                     } else if (!required) {
                       setDate(null);
-                      field.onChange(null);
+                      onChange(null);
                     }
                   }}
                   onDayClick={() => setIsOpen(false)}
                   fromYear={2000}
                   toYear={new Date().getFullYear() + 10}
-                  defaultMonth={field.value}
+                  defaultMonth={value as Date}
                   disabled={(date) => {
                     if (minDate) {
                       return date < new Date(minDate.setHours(0, 0, 0, 0));
@@ -132,20 +132,20 @@ export default function DateTimePicker({
       <FormField
         control={form.control}
         name={name}
-        render={({ field }) => (
+        render={({ field: { value, onChange } }) => (
           <FormItem className="flex flex-col">
             <FormLabel>Time</FormLabel>
             <FormControl>
               <Select
                 value={time}
-                onValueChange={(e) => {
-                  setTime(e);
-                  if (date || field.value) {
-                    const [hours, minutes] = e.split(":");
-                    const newDate = new Date(date?.getTime() || field.value.getTime());
-                    newDate.setHours(parseInt(hours!), parseInt(minutes!));
+                onValueChange={(newTime: string) => {
+                  setTime(newTime);
+                  if (date || value) {
+                    const [hours, minutes] = newTime.split(":");
+                    const newDate = new Date(date?.getTime() ?? (value as Date).getTime());
+                    newDate.setHours(parseInt(hours ?? '0'), parseInt(minutes ?? '0'));
                     setDate(newDate);
-                    field.onChange(newDate);
+                    onChange(newDate);
                   }
                 }}
               >

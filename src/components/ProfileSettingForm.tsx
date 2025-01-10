@@ -26,17 +26,17 @@ export default function ProfileSettingForm({ id }: { id: string }) {
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            name: getUser.data?.name!,
-            role: getUser.data?.role!,
-            department: getUser.data?.department!,
+            name: getUser.data?.name ?? "",
+            role: getUser.data?.role ?? "",
+            department: getUser.data?.department ?? "",
         }
     });
 
     const onSubmit = async(data: FormValues) => {
         const normalizedData: FormValues = {
-            name: ( data.name === '' ) ? getUser.data?.name! : data.name,
-            role: ( data.role === '' ) ? getUser.data?.role! : data.role,
-            department: ( data.department === '' ) ? getUser.data?.department! : data.department,
+            name: ( data.name === '' ) ? getUser.data?.name ?? "" : data.name,
+            role: ( data.role === '' ) ? getUser.data?.role ?? "" : data.role,
+            department: ( data.department === '' ) ? getUser.data?.department ?? "" : data.department,
 
         }
         await updateProfile.mutate(normalizedData);
@@ -48,7 +48,7 @@ export default function ProfileSettingForm({ id }: { id: string }) {
             <div className="flex items-center justify-center gap-6">
                 <Avatar className="h-24 w-24 rounded-full border-2 border-zinc-200/80 dark:border-zinc-800/80 shadow-sm">
                     <AvatarImage
-                        src={getUser?.data?.image!}
+                        src={getUser?.data?.image ?? '/default-avatar.png'}
                         className="h-24 w-24 rounded-full border-2 border-dashed border-zinc-200/80 dark:border-zinc-800/80 
                             hover:border-zinc-300 dark:hover:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-900/50
                             transition-colors shadow-sm"
@@ -65,7 +65,7 @@ export default function ProfileSettingForm({ id }: { id: string }) {
                             <Label htmlFor="name" className="text-zinc-700 dark:text-zinc-300">Display Name</Label>
                             <Input
                                 id="name"
-                                defaultValue={getUser?.data?.name!}
+                                defaultValue={getUser?.data?.name ?? ""}
                                 {...form.register("name")}
                                 className="bg-white dark:bg-zinc-900/50 border-zinc-200/80 dark:border-zinc-800/80 focus:border-zinc-300 dark:focus:border-zinc-700 focus:ring-1 focus:ring-zinc-200 dark:focus:ring-zinc-800 placeholder:text-zinc-400 dark:placeholder:text-zinc-600"
                             />
@@ -74,7 +74,7 @@ export default function ProfileSettingForm({ id }: { id: string }) {
                             <Label htmlFor="role" className="text-zinc-700 dark:text-zinc-300">Role</Label>
                             <Input
                                 id="role"
-                                defaultValue={getUser?.data?.role!}
+                                defaultValue={getUser?.data?.role ?? ""}
                                 {...form.register("role")}
                                 className="bg-white dark:bg-zinc-900/50 border-zinc-200/80 dark:border-zinc-800/80 focus:border-zinc-300 dark:focus:border-zinc-700 focus:ring-1 focus:ring-zinc-200 dark:focus:ring-zinc-800 placeholder:text-zinc-400 dark:placeholder:text-zinc-600"
                             />
@@ -83,14 +83,14 @@ export default function ProfileSettingForm({ id }: { id: string }) {
                             <Label htmlFor="department" className="text-zinc-700 dark:text-zinc-300">Department</Label>
                             <Input
                                 id="department"
-                                defaultValue={getUser?.data?.department!}
+                                defaultValue={getUser?.data?.department ?? ""}
                                 {...form.register("department")}
                                 className="bg-white dark:bg-zinc-900/50 border-zinc-200/80 dark:border-zinc-800/80 focus:border-zinc-300 dark:focus:border-zinc-700 focus:ring-1 focus:ring-zinc-200 dark:focus:ring-zinc-800 placeholder:text-zinc-400 dark:placeholder:text-zinc-600"
                             />
                         </div>
                     </div>
                     <div className="flex justify-end gap-4">
-                        <Button type="button" variant="outline" className="border-zinc-200/80 dark:border-zinc-800/80 hover:bg-zinc-50 dark:hover:bg-zinc-900/50">Cancel</Button>
+                        <Button type="button" variant="outline" className="border-zinc-200/80 dark:border-zinc-800/80 hover:bg-zinc-50 dark:hover:bg-zinc-900/50">Clear</Button>
                         <Button type="submit" className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200">Save Changes</Button>
                     </div>
                 </form>

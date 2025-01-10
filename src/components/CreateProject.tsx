@@ -13,14 +13,14 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Plus } from "lucide-react";
 import { api } from "@/trpc/react";
-import DateTimePicker from "./ui/data-time-picker";
+import DateTimePicker from "@/components/ui/data-time-picker";
 
 import { z } from 'zod'
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Form } from "./ui/form";
+import { Form } from "@/components/ui/form";
 import { useState } from "react";
-import MultiFunction from "./ui/multi-select";
+import MultiFunction from "@/components/ui/multi-select";
 
 const formSchema = z.object({
     name: z.string().min(1, "Name is required"),
@@ -52,7 +52,7 @@ export default function CreateProject({ userId, userName }: CreateProjectProps) 
 
     const onSubmit = async(data: FormValues) => {
         try {
-            const response = await addProject.mutate(data);
+            await addProject.mutateAsync(data);
             setOpen(false);
             form.reset();
         } catch(error) {

@@ -18,7 +18,7 @@ export const projectRouter = createTRPCRouter({
             members: z.array(idSchema).optional(),
         }))
         .mutation(async ({ ctx, input }) => {
-            const memberIds = input.members || [];
+            const memberIds = input.members ?? [];
             if (!memberIds.includes(ctx.session.user.id)) {
                 memberIds.push(ctx.session.user.id);
             }

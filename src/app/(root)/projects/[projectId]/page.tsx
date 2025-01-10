@@ -13,10 +13,8 @@ import {
 
 export default function ProjectPage() {
   const params = useParams();
-  const projectId = params.projectId as string;
-  const getProject = api.project.getById.useQuery({
-    id: projectId
-  });
+  const projectId = params?.projectId as string;
+  const getProject = api.project.getById.useQuery({ id: projectId });
 
   if(!getProject) {
     notFound();
@@ -36,7 +34,7 @@ export default function ProjectPage() {
             <div>
               <h3 className="text-xl font-semibold mb-4">Project Details</h3>
               <div className="space-y-2">
-                <p>Start Date: {getProject.data?.startDate.toLocaleDateString()}</p>
+                <p>Start Date: {getProject.data?.startDate?.toLocaleDateString() || "Not available"}</p>
                 {getProject.data?.endDate && (
                   <p>End Date: {getProject.data?.endDate.toLocaleDateString()}</p>
                 )}
@@ -48,14 +46,14 @@ export default function ProjectPage() {
               <div className="space-y-2">
                 {getProject.data?.members.map((member) => (
                   <div key={member.id} className="p-2 rounded">
-                    {member.name || member.id}
+                    {member.name ?? member.id}
                   </div>
                 ))}
               </div>
             </div>
           </div>
 
-          {getProject.data?.teams.length! > 0 && (
+          {(getProject.data?.teams.length ?? 0) > 0 && (
             <div className="mt-8">
               <h3 className="text-xl font-semibold mb-4">Teams</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

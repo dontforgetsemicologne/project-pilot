@@ -38,14 +38,14 @@ export default function ProjectUserSelect() {
     const [projectInputValue, setProjectInputValue] = useState("");
     const [userInputValue, setUserInputValue] = useState("");
 
-    const handleProjectSelect = useCallback((project: any) => {
+    const handleProjectSelect = useCallback((project: Project) => {
         setProjectInputValue("");
         setSelectedProject({
             id: project.id,
             name: project.name,
-            members: project.members.map((member: any) => ({
+            members: project.members.map((member) => ({
                 id: member.id,
-                name: member.name || ''
+                name: member.name ?? ''
             }))
         });
         setSelectedUsers([]); // Reset selected users when project changes
@@ -104,14 +104,12 @@ export default function ProjectUserSelect() {
         }
     }, [form]);
 
-    // Filter available users based on selected project's members
     const selectableUsers = selectedProject?.members.filter(
         user => !selectedUsers.some(selectedUser => selectedUser.id === user.id)
     ) || [];
 
     return (
         <div className="space-y-4">
-            {/* Project Selection */}
             <div>
                 <label className="text-sm font-medium mb-2 block">Select Project</label>
                 <Command className="overflow-visible bg-transparent">
@@ -158,7 +156,14 @@ export default function ProjectUserSelect() {
                                         {projects.data.map((project) => (
                                             <CommandItem
                                                 key={project.id}
-                                                onSelect={() => handleProjectSelect(project)}
+                                                onSelect={() => handleProjectSelect({
+                                                    id: project.id,
+                                                    name: project.name,
+                                                    members: project.members.map((member) => ({
+                                                        id: member.id,
+                                                        name: member.name ?? ''
+                                                    }))
+                                                })}
                                                 className="cursor-pointer"
                                             >
                                                 {project.name}
@@ -172,7 +177,6 @@ export default function ProjectUserSelect() {
                 </Command>
             </div>
 
-            {/* User Selection - Only shown if a project is selected */}
             {selectedProject && (
                 <div>
                     <label className="text-sm font-medium mb-2 block">Select Users</label>

@@ -5,7 +5,6 @@ import { useState } from 'react';
 import { 
     Dialog, 
     DialogContent,
-    DialogFooter,
     DialogHeader, 
     DialogTitle, 
     DialogTrigger
@@ -18,7 +17,6 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import { Plus } from 'lucide-react';
-import { Form } from '@/components/ui/form';
 import SelectProject from '@/components/SelectProject';
 
 const formSchema = z.object({
@@ -41,7 +39,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 export default function CreateTask() {
     const [open, setOpen] = useState(false);
-    const addTask = api.task.create.useMutation();
+    // const addTask = api.task.create.useMutation();
     // const getProjects = api.project.getAll.useQuery();
 
     const form = useForm<FormValues>({

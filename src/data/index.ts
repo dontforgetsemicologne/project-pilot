@@ -25,14 +25,3 @@ export const data = {
         { name: "Advanced", icon: Settings },
     ]
 }
-
-const dashboardItems = [
-    {
-        name: "Home",
-        icon: Home,
-        href: "/",
-    },
-    {
-        
-    }
-]

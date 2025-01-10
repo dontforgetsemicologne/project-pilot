@@ -21,14 +21,13 @@ export default function MultiFunction({ id, name }: User) {
     const form = useFormContext();
     const users = api.user.getAll.useQuery();
 
-    // Filter out duplicates and ensure current user is excluded
     const USERS: User[] = Array.from(
         new Set(
             (users.data ?? [])
                 .filter(user => user.id !== id)
                 .map((user) => ({
-                    id: user.id!,
-                    name: user.name!
+                    id: user.id ?? '',
+                    name: user.name ?? ''
                 }))
         )
     );
@@ -54,7 +53,6 @@ export default function MultiFunction({ id, name }: User) {
     }, [form, id, name]);
 
     const handleUnselect = useCallback((user: User) => {
-        // Prevent removing the creator
         if (user.id === id) return;
         
         setSelected((prev) => {
