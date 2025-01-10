@@ -42,19 +42,25 @@ export default function DateTimePicker({
   const [date, setDate] = useState<Date | null>(null);
   const form = useFormContext();
 
+  const parseTimeString = (timeString: string): [number, number] => {
+    const [hoursStr, minutesStr] = timeString.split(':');
+    const hours = parseInt(hoursStr ?? '0');
+    const minutes = parseInt(minutesStr ?? '0');
+    return [hours, minutes];
+  };
+
   const isTimeDisabled = (timeString: string): boolean => {
     if (!minDate || !date) return false;
     
     if (isSameDay(date, minDate)) {
-      const [hours, minutes] = timeString.split(':').map(Number);
+      const [hours, minutes] = parseTimeString(timeString);
       const minTime = minDate.getHours() * 60 + minDate.getMinutes();
-      const currentTime = (hours ?? 0) * 60 + (minutes ?? 0);
+      const currentTime = hours * 60 + minutes;
       return currentTime < minTime;
     }
     return false;
   };
 
-  // Function to get the initial valid time
   const getInitialValidTime = (): string => {
     if (!minDate) return "05:00";
     
@@ -99,11 +105,8 @@ export default function DateTimePicker({
                   onSelect={(selectedDate: Date | undefined) => {
                     if (selectedDate) {
                       const newTime = isSameDay(selectedDate, minDate!) ? getInitialValidTime() : time;
-                      const [hours, minutes] = newTime.split(":");
-                      selectedDate.setHours(
-                        parseInt(hours ?? '0'),
-                        parseInt(minutes ?? '0')
-                      );
+                      const [hours, minutes] = parseTimeString(newTime);
+                      selectedDate.setHours(hours, minutes);
                       setDate(selectedDate);
                       setTime(newTime);
                       onChange(selectedDate);
@@ -141,9 +144,9 @@ export default function DateTimePicker({
                 onValueChange={(newTime: string) => {
                   setTime(newTime);
                   if (date || value) {
-                    const [hours, minutes] = newTime.split(":");
+                    const [hours, minutes] = parseTimeString(newTime);
                     const newDate = new Date(date?.getTime() ?? (value as Date).getTime());
-                    newDate.setHours(parseInt(hours ?? '0'), parseInt(minutes ?? '0'));
+                    newDate.setHours(hours, minutes);
                     setDate(newDate);
                     onChange(newDate);
                   }
