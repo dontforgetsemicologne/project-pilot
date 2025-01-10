@@ -109,7 +109,7 @@ export default function DateTimePicker({
                 <Calendar
                   mode="single"
                   captionLayout="dropdown"
-                  selected={date ?? value}
+                  selected={date ?? (value as Date)}
                   onSelect={(selectedDate: Date | undefined) => {
                     if (selectedDate) {
                       const newTime = isSameDay(selectedDate, minDate!) ? getInitialValidTime() : time;
