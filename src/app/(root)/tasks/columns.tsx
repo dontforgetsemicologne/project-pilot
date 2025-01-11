@@ -102,7 +102,7 @@ export const columns: ColumnDef<Task>[] = [
         accessorKey: "assignees",
         header: "Assignees",
         cell: ({ row }) => {
-          const assignees = row.getValue("assignees") as Task["assignees"]
+          const assignees: Task["assignees"] = row.getValue("assignees")
           return (
             <div className="flex -space-x-2">
               {assignees.map((assignee) => (
@@ -137,7 +137,7 @@ export const columns: ColumnDef<Task>[] = [
         accessorKey: "tags",
         header: "Tags",
         cell: ({ row }) => {
-          const tags = row.getValue("tags") as Task["tags"]
+          const tags: Task["tags"] = row.getValue("tags")
           return (
             <div className="flex flex-wrap gap-1">
               {tags.map((tag) => (
