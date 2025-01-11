@@ -78,7 +78,7 @@ export const columns: ColumnDef<Task>[] = [
         accessorKey: "status",
         header: "Status",
         cell: ({ row }) => {
-          const status = row.getValue("status") as Task["status"]
+          const status: Task["status"] = row.getValue("status")
           return (
             <Badge className={statusColors[status]}>
               {status.replace("_", " ")}
@@ -90,7 +90,7 @@ export const columns: ColumnDef<Task>[] = [
         accessorKey: "priority",
         header: "Priority",
         cell: ({ row }) => {
-          const priority = row.getValue("priority") as Task["priority"]
+          const priority: Task["priority"] = row.getValue("priority")
           return (
             <Badge className={priorityColors[priority]}>
               {priority}
@@ -157,16 +157,16 @@ export const columns: ColumnDef<Task>[] = [
         accessorKey: "startDate",
         header: "Start Date",
         cell: ({ row }) => {
-          const date = row.getValue("startDate") as Date | null
-          return date ? format(date, "MMM d, yyyy") : "-"
+          const date = row.getValue("startDate")
+          return date ? format(date as Date, "MMM d, yyyy") : "-"
         },
     },
     {
         accessorKey: "deadline",
         header: "Deadline",
         cell: ({ row }) => {
-          const date = row.getValue("deadline") as Date | null
-          return date ? format(date, "MMM d, yyyy") : "-"
+          const date = row.getValue("deadline")
+          return date ? format(date as Date, "MMM d, yyyy") : "-"
         },
     },
     {
@@ -192,5 +192,3 @@ export const columns: ColumnDef<Task>[] = [
         },
     }
 ];
-
-

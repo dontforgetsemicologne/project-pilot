@@ -185,7 +185,7 @@ export default function TagCreator({
                         <div className="flex flex-col gap-3">
                             <div className="flex items-center gap-2">
                                 <Palette className="w-4 h-4" />
-                                <span className="text-sm font-medium">Select color for &ldquo;{pendingTag.label}&rdquo;"</span>
+                                <span className="text-sm font-medium">Select color for &ldquo;{pendingTag.label}&rdquo;</span>
                             </div>
                             <div className="flex gap-2">
                                 {Object.entries(tagStyles.colors).map(([colorName, colorClass]) => (
