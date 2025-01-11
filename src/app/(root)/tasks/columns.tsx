@@ -1,6 +1,6 @@
 "use client"
 
-import { ColumnDef } from "@tanstack/react-table"
+import type { ColumnDef } from "@tanstack/react-table"
 import { MoreHorizontal } from "lucide-react"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"

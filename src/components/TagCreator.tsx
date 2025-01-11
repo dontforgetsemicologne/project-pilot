@@ -135,7 +135,7 @@ export default function TagCreator({
                         className={cn(
                             tagStyles.base,
                             "text-base sm:text-sm py-1 sm:py-0.5",
-                            tag.color || tagStyles.colors.blue
+                            tag.color ?? tagStyles.colors.blue
                         )}
                     >
                         {tag.label}
@@ -185,7 +185,7 @@ export default function TagCreator({
                         <div className="flex flex-col gap-3">
                             <div className="flex items-center gap-2">
                                 <Palette className="w-4 h-4" />
-                                <span className="text-sm font-medium">Select color for "{pendingTag.label}"</span>
+                                <span className="text-sm font-medium">Select color for &ldquo;{pendingTag.label}&rdquo;"</span>
                             </div>
                             <div className="flex gap-2">
                                 {Object.entries(tagStyles.colors).map(([colorName, colorClass]) => (
@@ -262,7 +262,7 @@ export default function TagCreator({
                                     )}
                                 >
                                     <Plus className="w-3.5 h-3.5" />
-                                    Create "{input}"
+                                    Create  &ldquo;{input}&rdquo;
                                 </button>
                             )}
                         </div>

@@ -35,7 +35,7 @@ export function useTags({
             {
                 ...tag,
                 color:
-                    tag.color ||
+                    tag.color ??
                     defaultColors[tags.length % defaultColors.length],
             },
         ];

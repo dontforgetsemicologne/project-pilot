@@ -27,7 +27,6 @@ import { useAutosizeTextArea } from "@/components/ui/autosize-textarea"
 import { MultiSelect } from "@/components/ui/multiple-select"
 import { Dot, ShieldAlert } from "lucide-react"
 import TagCreator from "@/components/TagCreator"
-import DateTimePicker from "@/components/ui/data-time-picker"
 
 const formSchema = z.object({
     title: z.string().min(1),
@@ -334,7 +333,7 @@ export default function MyForm() {
                             </FormItem>
                         )}
                     />
-                    <FormField
+                    {/* <FormField
                         control={form.control}
                         name="startDate"
                         render={({ field }) => (
@@ -355,7 +354,7 @@ export default function MyForm() {
                                 </FormControl>
                             </FormItem>
                         )}
-                    />
+                    /> */}
                     <FormField
                         control={form.control}
                         name="tags"
