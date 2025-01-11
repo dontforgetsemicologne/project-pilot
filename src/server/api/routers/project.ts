@@ -120,7 +120,11 @@ export const projectRouter = createTRPCRouter({
                 ],
             },
             include: {
-                teams: true,
+                teams: {
+                    include: {
+                        members: true
+                    }
+                },
                 members: true,
             },
         });

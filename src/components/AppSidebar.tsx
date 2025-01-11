@@ -18,6 +18,7 @@ import {
 import NavProjects from "@/components/NavProjects";
 import NavTasks from "@/components/NavTasks";
 import NavTeams from "@/components/NavTeams";
+import Logo from "./Logo";
 
 
 export default async function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -35,7 +36,9 @@ export default async function AppSidebar({ ...props }: React.ComponentProps<type
 
     return (
         <Sidebar collapsible="icon" {...props}>
-            <SidebarHeader></SidebarHeader>
+            <SidebarHeader className="px-6 items-center justify-center">
+                <Logo/>
+            </SidebarHeader>
             <SidebarContent>
                 <SidebarGroup>
                     <SidebarGroupContent>

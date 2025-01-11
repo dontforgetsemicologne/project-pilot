@@ -1,18 +1,25 @@
 'use client'
 
-import { ChevronRight } from "lucide-react"
+import { ChevronRight, Github } from "lucide-react"
 
 import { LinkPreview } from "@/components/ui/link-preview"
 
 import RetroGrid from "@/components/RetroGrid"
 import DialogLoginForm from "@/components/DialogLoginForm"
 import Image from "next/image"
+import Logo from "./Logo"
+import Link from "next/link"
+import { Button } from "./ui/button"
 
 export default function Hero() {
+    
     return (
         <div className="relative w-full overflow-x-hidden">
             <div className="absolute top-0 z-[0] h-full w-full bg-purple-950/10 bg-[radial-gradient(ellipse_20%_80%_at_50%_-20%,rgba(120,119,198,0.3),rgba(255,255,255,0))]" />
-            <section className="relative w-full mx-auto z-1">
+            <div className="flex items-center justify-center py-8 px-10">
+                <Logo/>
+            </div>
+            <section className="relative w-full mx-auto z-1 -mt-20">
                 <RetroGrid/>
                 <div className="max-w-screen-xl z-10 mx-auto px-4 py-28 gap-12 text-gray-600 md:px-8">
                     <div className="space-y-5 max-w-3xl mx-auto text-center">
@@ -35,6 +42,14 @@ export default function Hero() {
                                 <span className="absolute inset-[-1000%] animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#E2CBFF_0%,#393BB2_50%,#E2CBFF_100%)]" />
                                 <div className="inline-flex h-full w-full cursor-pointer items-center justify-center rounded-full bg-gray-950 text-sm font-medium text-gray-50 backdrop-blur-3xl">
                                     <DialogLoginForm/>
+                                </div>
+                            </span>
+                            <span className="relative inline-block overflow-hidden rounded-full p-[1px]">
+                                <span className="absolute inset-[-1000%] animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#E2CBFF_0%,#393BB2_50%,#E2CBFF_100%)]" />
+                                <div className="inline-flex h-full w-full cursor-pointer items-center justify-center rounded-full bg-gray-950 text-sm font-medium text-gray-50 backdrop-blur-3xl">
+                                    <Link href="https://github.com/dontforgetsemicologne/project-pilot">
+                                        <Button variant={'signin'} size={'signin'}>Star on GitHub <Github/></Button>
+                                    </Link>
                                 </div>
                             </span>
                         </div>

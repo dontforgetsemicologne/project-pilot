@@ -19,7 +19,11 @@ export const taskRouter = createTRPCRouter({
             startDate: dateSchema,
             deadline: dateSchema,
             assignees: z.array(idSchema).optional(),
-            tags: z.array(idSchema).optional(),
+            tags: z.array(z.object({
+                id: z.string(),
+                label: z.string(),
+                color: z.string().optional()
+            })),
         }))
         .mutation(async ({ ctx, input }) => {
             return ctx.db.task.create({
@@ -36,7 +40,11 @@ export const taskRouter = createTRPCRouter({
                         connect: input.assignees.map(id => ({ id }))
                     } : undefined,
                     tags: input.tags ? {
-                        connect: input.tags.map(id => ({ id }))
+                        connect: input.tags.map(tag => ({ 
+                            id: tag.id,
+                            label: tag.label,
+                            color: tag.color
+                        }))
                     } : undefined,
                 },
             });
@@ -52,7 +60,11 @@ export const taskRouter = createTRPCRouter({
             startDate: dateSchema,
             deadline: dateSchema,
             assignees: z.array(idSchema).optional(),
-            tags: z.array(idSchema).optional(),
+            tags: z.array(z.object({
+                id: z.string(),
+                label: z.string(),
+                color: z.string().optional()
+            })),
         }))
         .mutation(async ({ ctx, input }) => {
             const task = await ctx.db.task.findFirst({
@@ -81,7 +93,11 @@ export const taskRouter = createTRPCRouter({
                         set: input.assignees.map(id => ({ id }))
                     } : undefined,
                     tags: input.tags ? {
-                        set: input.tags.map(id => ({ id }))
+                        set: input.tags.map(tag => ({ 
+                            id: tag.id,
+                            label: tag.label,
+                            color: tag.color
+                         }))
                     } : undefined,
                 },
             });
