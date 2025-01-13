@@ -29,9 +29,8 @@ export const taskSchema = z.object({
   tags: z.array(z.object({
     id: z.string(),
     name: z.string(),
-    color: z.string().optional()
+    color: z.string()
   })).default([]),
-  comments: z.array(commentSchema).default([])
 })
 
 export type Comment = z.infer<typeof commentSchema>

@@ -24,7 +24,7 @@ import CreateTask from "./CreateTask";
 
 export default function NavTasks() {
     const getProjects = api.project.getAll.useQuery();
-    const getTasks = api.task.getAll.useQuery({});
+    const getTasks = api.task.getAll.useQuery();
     const getProjectTasks = (projectId: string) => {
         return getTasks.data?.filter(task => task.projectId === projectId) ?? [];
     };

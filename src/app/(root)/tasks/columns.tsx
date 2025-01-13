@@ -103,8 +103,13 @@ export const createColumns = (): ColumnDef<Task>[] => {
         },
     },
     {
-        accessorKey: "project.name",
+        accessorKey: "projectId",
         header: "Project",
+        cell: ({ row }) => {
+          const projectId: string = row.getValue("projectId");
+          const project = api.project.getById.useQuery({ id: projectId });
+          return project.data ? project.data.name : null;
+        }
     },
     {
         accessorKey: "team.id",

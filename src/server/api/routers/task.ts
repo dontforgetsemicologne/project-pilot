@@ -141,6 +141,7 @@ export const taskRouter = createTRPCRouter({
                     },
                 },
             });
+            return tasks;
         }),
 
     delete: protectedProcedure

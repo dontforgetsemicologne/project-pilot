@@ -29,6 +29,23 @@ export default function TasksPage() {
   const columns = createColumns();
 
   const tasks = api.task.getAll.useQuery();
+  const taskData = tasks.data?.map((task) => ({
+    id: task.id,
+    title: task.title,
+    description: task.description ?? undefined,
+    projectId: task.projectId,
+    teamId: task.teamId,
+    priority: task.priority,
+    status: task.status,
+    startDate: task.startDate ?? new Date(),
+    deadline: task.deadline ?? new Date(),
+    assignees: task.assignees.map(member => member.id),
+    tags: task.tags.map(tag => ({
+      id: tag.id,
+      name: tag.name,
+      color: tag.color ?? 'blue'
+    }))
+  }))
   const createTask = api.task.create.useMutation({
     onSuccess: () => {
       toast.success("Task created successfully");
@@ -138,7 +155,7 @@ export default function TasksPage() {
       />
       <DataTable
         columns={columns}
-        data={tasks.data ?? []}
+        data={taskData ?? []}
         onAdd={openCreateDialog}
         onEdit={handleEdit}
         onDelete={handleDelete}
