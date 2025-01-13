@@ -131,7 +131,7 @@ export const createColumns = (): ColumnDef<Task>[] => {
                   className="text-xs"
                   style={{ backgroundColor: tag.color ?? "#e5e7eb" }}
                 >
-                  {tag.label}
+                  {tag.name}
                 </Badge>
               ))}
             </div>
