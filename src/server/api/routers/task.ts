@@ -5,6 +5,14 @@ import {
   protectedProcedure,
 } from "@/server/api/trpc";
 
+import type { Task, User, Tag } from "@prisma/client";
+
+type TaskWithRelations = Task & {
+    project: { id: string };
+    assignees: (Pick<User, "id" | "name" | "image">)[];
+    tags: Tag[];
+};
+
 const idSchema = z.string().min(1);
 const dateSchema = z.date().optional();
 
@@ -21,7 +29,7 @@ export const taskRouter = createTRPCRouter({
             assignees: z.array(idSchema).optional(),
             tags: z.array(z.object({
                 id: z.string(),
-                label: z.string(),
+                name: z.string(),
                 color: z.string().optional()
             })),
         }))
@@ -42,7 +50,7 @@ export const taskRouter = createTRPCRouter({
                     tags: input.tags ? {
                         connect: input.tags.map(tag => ({ 
                             id: tag.id,
-                            label: tag.label,
+                            name: tag.name,
                             color: tag.color
                         }))
                     } : undefined,
@@ -62,7 +70,7 @@ export const taskRouter = createTRPCRouter({
             assignees: z.array(idSchema).optional(),
             tags: z.array(z.object({
                 id: z.string(),
-                label: z.string(),
+                name: z.string(),
                 color: z.string().optional()
             })),
         }))
@@ -95,7 +103,7 @@ export const taskRouter = createTRPCRouter({
                     tags: input.tags ? {
                         set: input.tags.map(tag => ({ 
                             id: tag.id,
-                            label: tag.label,
+                            name: tag.name,
                             color: tag.color
                          }))
                     } : undefined,
@@ -104,24 +112,27 @@ export const taskRouter = createTRPCRouter({
         }),
   
     getAll: protectedProcedure
-        .input(z.object({
-            projectId: idSchema.optional(),
-            teamId: idSchema.optional(),
-            status: z.enum(["PENDING", "IN_PROGRESS", "REVIEW", "COMPLETED"]).optional(),
-        }))
         .query(({ ctx, input }) => {
-            return ctx.db.task.findMany({
+            const tasks = ctx.db.task.findMany({
                 where: {
-                    projectId: input.projectId,
-                    teamId: input.teamId,
-                    status: input.status,
                     OR: [
                         { createdById: ctx.session.user.id },
                         { assignees: { some: { id: ctx.session.user.id } } },
                     ],
                 },
                 include: {
-                    assignees: true,
+                    project: {
+                        select: {
+                            id: true,
+                        }
+                    },
+                    assignees: {
+                        select: {
+                            id: true,
+                            name: true,
+                            image: true
+                        }
+                    },
                     tags: true,
                     comments: {
                         include: {
@@ -129,6 +140,28 @@ export const taskRouter = createTRPCRouter({
                         },
                     },
                 },
+            });
+        }),
+
+    delete: protectedProcedure
+        .input(z.object({id: idSchema}))
+        .mutation(async ({ ctx, input }) => {
+            const task = await ctx.db.task.findFirst({
+                where: {
+                    id: input.id,
+                    OR: [
+                        { createdById: ctx.session.user.id },
+                        { assignees: { some: { id: ctx.session.user.id } } },
+                    ],
+                },
+            });
+
+            if (!task) {
+                throw new TRPCError({ code: "NOT_FOUND", message: "Task not found" });
+            }
+
+            return ctx.db.task.delete({
+                where: { id: input.id },
             });
         }),
 });

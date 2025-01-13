@@ -27,35 +27,67 @@ import { useAutosizeTextArea } from "@/components/ui/autosize-textarea"
 import { MultiSelect } from "@/components/ui/multiple-select"
 import { Dot, ShieldAlert } from "lucide-react"
 import TagCreator from "@/components/TagCreator"
+import { Task } from "./types"
+import DateTimePicker from "@/components/ui/data-time-picker"
 
 const formSchema = z.object({
     title: z.string().min(1),
     description: z.string().optional(),
     projectId: z.string().min(1),
-    teamId: z.string().min(1),
+    teamId: z.string().optional(),
     priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]).default('MEDIUM'),
+    status: z.enum(["PENDING","IN_PROGRESS","REVIEW","COMPLETED"]).default('PENDING'),
     startDate: z.date(),
     deadline: z.date(),
     assignees: z.array(z.string().min(1)),
     tags: z.array(z.object({
         id: z.string(),
-        label: z.string(),
-        color: z.string().optional()
+        name: z.string(),
+        color: z.string(),
     })).default([]),
-})
+});
 
 export default function MyForm() {
-    const addTask = api.task.create.useMutation({});
+    const addTask = api.task.create.useMutation({
+        onSuccess: () => {
+            console.log("Task created successfully");
+            toast.success("Task created successfully");
+            form.reset();
+        },
+        onError: (error) => {
+            console.error("Error creating task:", error);
+            toast.error(error.message || "Failed to create task");
+        }
+    });
     const projects = api.project.getAll.useQuery();
     const createTeam = api.team.create.useMutation({});
     const tags = api.tag.getAll.useQuery();
-    const createTag = api.tag.create.useMutation();
+    const createTag = api.tag.create.useMutation({
+        onError: (error) => {
+            toast.error(error.message || "Failed to create team");
+        }
+    });
+
+    const defaultValues = {
+        title: "",
+        description: "",
+        projectId: "",
+        teamId: undefined,
+        priority: "MEDIUM" as const,
+        status: "PENDING" as const,
+        startDate: new Date(),
+        deadline: new Date(),
+        assignees: [] as string[],
+        tags: [] as { id: string; label: string; color?: string }[]
+    };
 
     const form = useForm<z.infer<typeof formSchema>> ({
         resolver: zodResolver(formSchema),
+        defaultValues,
+        mode: 'onChange'
     });
 
-    const [selectedProjectId, setSelectedProjectId] = useState<string>("");
+    const [selectedProjectId, setSelectedProjectId] = useState<string>(defaultValues.projectId);
     const selectedProject = projects.data?.find(project => project.id === selectedProjectId);
 
     const members = selectedProject?.members.map(member => ({
@@ -66,7 +98,7 @@ export default function MyForm() {
 
     const tagSuggestions = tags.data?.map(tag => ({
         id: tag.id,
-        label: tag.name,
+        name: tag.name,
         color: tag.color ?? ''
     })) ?? [];
 
@@ -81,6 +113,7 @@ export default function MyForm() {
 
     const description = form.watch('description');
     const assignees = form.watch('assignees');
+    const startDate = form.watch('startDate');
 
     useEffect(() => {
         if(textAreaRef.current) {
@@ -88,72 +121,47 @@ export default function MyForm() {
         }
     },[description]);
 
-    const handleTeamAssignment = async() => {
-        if (!selectedProjectId || !assignees?.length) return;
-
-        const existingTeam = selectedProject?.teams?.find(team => 
-            team.members.length === assignees.length && 
-            team.members.every(member => assignees.includes(member.id))
-        );
-
-        if (existingTeam) {
-            // Use existing team
-            form.setValue('teamId', existingTeam.id);
-            return existingTeam.id;
-        } else {
-            // Create new team
-            const newTeam = await   createTeam.mutateAsync({
-                name: `Task Team for ${selectedProject?.name}`,
-                projectId: selectedProjectId,
-                members: assignees
-            });
-            form.setValue('teamId', newTeam.id);
-            return newTeam.id;
+    const getStatusContent = (status: string) => {
+        const statusConfig = {
+            PENDING: {
+                classname: "bg-gray-200 text-gray-700",
+                label: 'Pending'
+            },
+            IN_PROGRESS: {
+                classname: "bg-blue-200 text-blue-700",
+                label: 'In Progress'
+            },
+            REVIEW: {
+                classname: "bg-yellow-200 text-yellow-700",
+                label: 'Review'
+            },
+            COMPLETED: {
+                classname: "bg-green-200 text-green-700",
+                label: 'Completed'
+            },
         }
-    };
+        return statusConfig[status as keyof typeof statusConfig];
+    }
 
     const getPriorityContent = (priority: string) => {
         const priorityConfig = {
             LOW: { 
-                icon: 
-                    <Dot 
-                        className="text-green-500 mr-2" 
-                        width={10}
-                        height={10}
-                        strokeWidth={20}
-                    />, 
+                icon: <Dot className="text-green-500 mr-2" width={10} height={10} strokeWidth={20} />, 
                 label: "LOW",
                 classname: 'border border-emerald-300 bg-emerald-100 dark:bg-emerald-950/20 dark:border-emerald-800/30 p-2 shadow-sm'
             },
             MEDIUM: { 
-                icon: 
-                    <Dot 
-                        className="text-yellow-500 mr-2" 
-                        width={10}
-                        height={10}
-                        strokeWidth={20}
-                    />, 
+                icon: <Dot className="text-yellow-500 mr-2" width={10} height={10} strokeWidth={20} />, 
                 label: "MEDIUM",
                 classname: 'border border-yellow-300 bg-yellow-100 dark:bg-yellow-950/20 dark:border-yellow-800/30 p-2 shadow-sm'
             },
             HIGH: { 
-                icon: 
-                    <Dot 
-                        className="text-red-500 mr-2" 
-                        width={10}
-                        height={10}
-                        strokeWidth={20}
-                    />, 
+                icon: <Dot className="text-red-500 mr-2" width={10} height={10} strokeWidth={20} />, 
                 label: "HIGH", 
                 classname: 'border border-rose-300 bg-rose-100 dark:bg-rose-950/20 dark:border-rose-800/30 p-2 shadow-sm'
             },
             URGENT: { 
-                icon: 
-                    <ShieldAlert 
-                        className="text-red-500 mr-2" 
-                        width={10}
-                        height={10}
-                    />, 
+                icon: <ShieldAlert className="text-red-500 mr-2" width={10} height={10} />, 
                 label: "URGENT", 
                 classname: 'border border-red-300 bg-red-100 dark:bg-red-950/20 dark:border-red-800/30 p-2 shadow-sm'
             }
@@ -161,55 +169,84 @@ export default function MyForm() {
         return priorityConfig[priority as keyof typeof priorityConfig];
     };
 
-    async function onSubmit(values: z.infer<typeof formSchema>) {
+    const onSubmit = async (values: z.infer<typeof formSchema>) => {
+        console.log('Form values before submission:', values); 
         try {
-            const teamId = await handleTeamAssignment();
-            if (!teamId) {
-                toast.error("Failed to create or assign team");
+            if (!selectedProjectId) {
+                toast.error("Project is required");
                 return;
             }
 
-            addTask.mutate(values);
-            const newTags = values.tags.filter(tag => !tagSuggestions.find(s => s.id === tag.id));
+            if (!assignees || assignees.length === 0) {
+                toast.error("At least one assignee is required");
+                return;
+            }
 
-            const createdTags = await Promise.all(
-                newTags.map(tag => 
-                createTag.mutateAsync({
-                    name: tag.label,
-                    color: tag.color
+            const existingTeam = selectedProject?.teams?.find(team => {
+                return team.members.length === assignees.length &&
+                    assignees.every(assigneeId => team.members.some(member => member.id === assigneeId)) && team.members.every(member => assignees.includes(member.id));
+            });
+
+            let teamId: string;
+            if (existingTeam) {
+                teamId = existingTeam.id;
+            } else {
+                const newTeam = await createTeam.mutateAsync({
+                    name: `Team for ${values.title}`,
+                    description: '',
+                    projectId: selectedProjectId,
+                    members: assignees
+                });
+                teamId = newTeam.id;
+            }
+
+            console.log(teamId);
+            if (!teamId) {
+                throw new Error("Failed to set teamId. Please try again.");
+            }
+            form.setValue('teamId', teamId);
+            
+            const processedTags = await Promise.all(
+                values.tags.map(async (tag) => {
+                    if (!tagSuggestions.find(s => s.id === tag.id)) {
+                        const newTag = await createTag.mutateAsync({
+                            name: tag.name,
+                            color: tag.color
+                        });
+                        return {
+                            id: newTag.id,
+                            name: newTag.name,
+                            color: newTag.color ?? 'blue'
+                        };
+                    }
+                    return tag;
                 })
-            ));
-
-            const allTags = [
-                ...values.tags.filter(tag => tagSuggestions.find(s => s.id === tag.id)),
-                ...createdTags.map(tag => ({
-                    id: tag.id,
-                    label: tag.name,
-                    color: tag.color ?? '' 
-                }))
-            ];
-
-            await addTask.mutateAsync({
+            );
+    
+            const taskData = {
                 ...values,
                 teamId,
-                tags: allTags
-            })
-
-            toast(
-                <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-                    <code className="text-white">{JSON.stringify(values, null, 2)}</code>
-                </pre>
-            );
-
+                startDate: new Date(values.startDate),
+                deadline: new Date(values.deadline),
+                tags: processedTags
+            };
+    
+            console.log('Task data before mutation:', taskData);
+            await addTask.mutateAsync(taskData);
         } catch (error) {
-            console.error("Form submission error", error);
-            toast.error("Failed to submit the form. Please try again.");
+            console.error("Form submission error:", error);
+            if (error instanceof z.ZodError) {
+                console.log('Validation errors:', error.errors);
+                toast.error("Form validation failed. Please check all fields.");
+            } else {
+                toast.error("Failed to submit the form. Please try again.");
+            }
         }
-    }
+    };
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 max-w-3xl mx-auto py-10"> 
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 max-w-6xl mx-auto w-full"> 
                 <div className="flex flex-col gap-3">
                     <FormField
                         control={form.control}
@@ -241,6 +278,7 @@ export default function MyForm() {
                             </FormItem>
                         )}
                     />
+                    <div className="flex flex-row gap-2">
                     <FormField
                         control={form.control}
                         name="priority"
@@ -279,6 +317,44 @@ export default function MyForm() {
                             </FormItem>
                         )}
                     />
+                    <FormField
+                        control={form.control}
+                        name="status"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Status</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select the task status'>
+                                                {field.value && (
+                                                    <div className="flex items-center">
+                                                        {getStatusContent(field.value).label}
+                                                    </div>
+                                                )}
+                                            </SelectValue>
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {["PENDING","IN_PROGRESS","REVIEW","COMPLETED"].map((status) => (
+                                            <SelectItem 
+                                                key={status} 
+                                                value={status}
+                                                className={`flex items-center gap-1`}
+                                            >
+                                                <div className="flex items-center">
+                                                    <Dot className={`${getStatusContent(status).classname}`}/>
+                                                    {getStatusContent(status).label}
+                                                </div>
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    </div>
                     <FormField
                         control={form.control}
                         name="projectId"
@@ -323,7 +399,7 @@ export default function MyForm() {
                                 <FormControl>
                                     <MultiSelect
                                         options={members}
-                                        onValueChange={field.onChange}
+                                        onValueChange={(values) => field.onChange(values)}
                                         defaultValue={field.value}
                                         placeholder="Select assignees"
                                         animation={0}
@@ -333,13 +409,18 @@ export default function MyForm() {
                             </FormItem>
                         )}
                     />
-                    {/* <FormField
+                    <FormField
                         control={form.control}
                         name="startDate"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Start Date</FormLabel>
                                 <FormControl>
+                                    <DateTimePicker
+                                        {...field}
+                                        name="startDate"
+                                        label="Start Date"
+                                        minDate={new Date()}
+                                    />
                                 </FormControl>
                             </FormItem>
                         )}
@@ -349,12 +430,17 @@ export default function MyForm() {
                         name="deadline"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Deadline</FormLabel>
                                 <FormControl>
+                                    <DateTimePicker
+                                        {...field}
+                                        name="deadline"
+                                        label="Deadline"
+                                        minDate={startDate}
+                                    />
                                 </FormControl>
                             </FormItem>
                         )}
-                    /> */}
+                    />
                     <FormField
                         control={form.control}
                         name="tags"
@@ -374,8 +460,24 @@ export default function MyForm() {
                         )}
                     />
                     <div className="flex gap-4 justify-end">
-                        <Button type="reset">Clear</Button>
-                        <Button type="submit">Submit</Button>
+                        <Button 
+                            type="button"
+                            onClick={() => form.reset(defaultValues)}
+                        >
+                            Clear
+                        </Button>
+                        <Button 
+                            type="submit"
+                            onClick={() => {
+                                const isValid = form.formState.isValid;
+                                const errors = form.formState.errors;
+                                console.log('Form is valid:', isValid);
+                                console.log('Form errors:', errors);
+                                console.log('Form values:', form.getValues());
+                            }}
+                        >
+                            Submit
+                        </Button>
                     </div>
                 </div>
             </form>

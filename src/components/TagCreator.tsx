@@ -8,7 +8,7 @@ import { useClickOutside } from "@/hooks/use-click-outside";
 
 interface Tag {
     id: string;
-    label: string;
+    name: string;
     color?: string;
 }
 
@@ -17,7 +17,7 @@ interface TagInputProps {
     defaultTags?: Tag[];
     suggestions?: Tag[];
     maxTags?: number;
-    label?: string;
+    name?: string;
     placeholder?: string;
     error?: string;
 }
@@ -42,7 +42,7 @@ export default function TagCreator({
     defaultTags = [],
     suggestions = [],
     maxTags = 10,
-    label = "Tags",
+    name = "Tags",
     placeholder = "Add tags...",
     error,
 }: TagInputProps) {
@@ -55,21 +55,21 @@ export default function TagCreator({
     const [isOpen, setIsOpen] = useState(false);
     const [selectedIndex, setSelectedIndex] = useState(0);
     const [showColorPicker, setShowColorPicker] = useState(false);
-    const [pendingTag, setPendingTag] = useState<{ label: string; color?: string } | null>(null);
+    const [pendingTag, setPendingTag] = useState<{ name: string; color?: string } | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
 
     const filteredSuggestions = suggestions
         .filter(
             (suggestion) =>
-                suggestion.label.toLowerCase().includes(input.toLowerCase()) &&
+                suggestion.name.toLowerCase().includes(input.toLowerCase()) &&
                 !tags.find((tag) => tag.id === suggestion.id)
         )
         .slice(0, 5);
 
     const canAddNewTag =
         !suggestions.find(
-            (s) => s.label.toLowerCase() === input.toLowerCase()
+            (s) => s.name.toLowerCase() === input.toLowerCase()
         ) && input.length > 0;
 
     function handleKeyDown(e: React.KeyboardEvent) {
@@ -82,7 +82,7 @@ export default function TagCreator({
                 setInput("");
                 setIsOpen(false);
             } else if (canAddNewTag) {
-                setPendingTag({ label: input });
+                setPendingTag({ name: input });
                 setShowColorPicker(true);
                 setInput("");
                 setIsOpen(false);
@@ -96,8 +96,8 @@ export default function TagCreator({
     const handleColorSelect = (color: string) => {
         if (pendingTag) {
             addTag({
-                id: pendingTag.label,
-                label: pendingTag.label,
+                id: pendingTag.name,
+                name: pendingTag.name,
                 color: tagStyles.colors[color as keyof typeof tagStyles.colors],
             });
             setPendingTag(null);
@@ -112,12 +112,12 @@ export default function TagCreator({
 
     return (
         <div className="w-full space-y-2" ref={containerRef}>
-            {label && (
+            {name && (
                 <label
                     className="text-sm font-medium text-zinc-800 dark:text-zinc-200"
-                    htmlFor={label}
+                    htmlFor={name}
                 >
-                    {label}
+                    {name}
                 </label>
             )}
 
@@ -138,7 +138,7 @@ export default function TagCreator({
                             tag.color ?? tagStyles.colors.blue
                         )}
                     >
-                        {tag.label}
+                        {tag.name}
                         <button
                             type="button"
                             onClick={() => removeTag(tag.id)}
@@ -185,7 +185,7 @@ export default function TagCreator({
                         <div className="flex flex-col gap-3">
                             <div className="flex items-center gap-2">
                                 <Palette className="w-4 h-4" />
-                                <span className="text-sm font-medium">Select color for &ldquo;{pendingTag.label}&rdquo;</span>
+                                <span className="text-sm font-medium">Select color for &ldquo;{pendingTag.name}&rdquo;</span>
                             </div>
                             <div className="flex gap-2">
                                 {Object.entries(tagStyles.colors).map(([colorName, colorClass]) => (
@@ -239,7 +239,7 @@ export default function TagCreator({
                                             : "bg-zinc-50 text-zinc-700 border border-zinc-300 hover:border-zinc-400 dark:bg-zinc-800/50 dark:text-zinc-300 dark:border-zinc-700 dark:hover:border-zinc-600"
                                     )}
                                 >
-                                    {suggestion.label}
+                                    {suggestion.name}
                                     {selectedIndex === index && (
                                         <Check className="w-3.5 h-3.5" />
                                     )}
@@ -249,7 +249,7 @@ export default function TagCreator({
                                 <button
                                     type="button"
                                     onClick={() => {
-                                        setPendingTag({ label: input });
+                                        setPendingTag({ name: input });
                                         setShowColorPicker(true);
                                         setInput("");
                                         setIsOpen(false);

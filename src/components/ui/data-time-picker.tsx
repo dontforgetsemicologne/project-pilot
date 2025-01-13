@@ -1,7 +1,7 @@
 'use client'
 
 import { CalendarIcon } from 'lucide-react';
-import { format, isSameDay } from 'date-fns';
+import { format, isSameDay, isValid } from 'date-fns';
 import { useFormContext } from 'react-hook-form';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -14,7 +14,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Select,
   SelectContent,
@@ -43,18 +43,28 @@ export default function DateTimePicker({
   minDate,
 }: DateTimePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [time, setTime] = useState<string>("05:00");
-  const [date, setDate] = useState<Date | null>(null);
   const form = useFormContext();
+  const fieldValue = form.watch(name) as Date | undefined;
+  const [time, setTime] = useState(() => {
+    if (fieldValue && isValid(fieldValue)) {
+      return `${fieldValue.getHours().toString().padStart(2, '0')}:${fieldValue.getMinutes().toString().padStart(2, '0')}`;
+    }
+    return "05:00";
+  });
+  const [date, setDate] = useState<Date | null>(() => {
+    return fieldValue && isValid(fieldValue) ? fieldValue : null;
+  });
 
   const parseTimeString = (timeString: string): TimeComponents => {
-    const parts = timeString.split(':');
-    const hoursStr = parts[0] ?? '0';
-    const minutesStr = parts[1] ?? '0';
-    return {
-      hours: Number.parseInt(hoursStr, 10),
-      minutes: Number.parseInt(minutesStr, 10),
-    };
+    try {
+      const [hours = '0', minutes = '0'] = timeString.split(':');
+      return {
+        hours: Math.min(23, Math.max(0, Number.parseInt(hours, 10) || 0)),
+        minutes: Math.min(59, Math.max(0, Number.parseInt(minutes, 10) || 0)),
+      };
+    } catch {
+      return { hours: 0, minutes: 0 };
+    }
   };
 
   const isTimeDisabled = (timeString: string): boolean => {
@@ -77,12 +87,63 @@ export default function DateTimePicker({
     return `${hours}:${minutes.toString().padStart(2, '0')}`;
   };
 
+  useEffect(() => {
+    if (fieldValue && isValid(fieldValue)) { // Add validation check
+      const newTime = `${fieldValue.getHours().toString().padStart(2, '0')}:${fieldValue.getMinutes().toString().padStart(2, '0')}`;
+      setTime(newTime);
+      setDate(fieldValue);
+    }
+  }, [fieldValue]);
+
+  const handleDateSelect = (selectedDate: Date | undefined) => {
+    try {
+      if (selectedDate && isValid(selectedDate)) {
+        const newTime = isSameDay(selectedDate, minDate!) ? getInitialValidTime() : time;
+        const { hours, minutes } = parseTimeString(newTime);
+        const newDateTime = new Date(selectedDate);
+        newDateTime.setHours(hours, minutes);
+        
+        if (isValid(newDateTime)) {
+          setDate(newDateTime);
+          setTime(newTime);
+          form.setValue(name, newDateTime, { shouldValidate: true });
+        }
+      } else if (!required) {
+        setDate(null);
+        form.setValue(name, null, { shouldValidate: true });
+      }
+    } catch (error) {
+      console.error('Error handling date select:', error);
+    }
+  };
+
+  const handleTimeChange = (newTime: string) => {
+    try {
+      setTime(newTime);
+      if (date || fieldValue) {
+        const { hours, minutes } = parseTimeString(newTime);
+        const baseDate = date ?? fieldValue;
+        if (baseDate && isValid(baseDate)) {
+          const newDateTime = new Date(baseDate.getTime());
+          newDateTime.setHours(hours, minutes);
+          
+          if (isValid(newDateTime)) {
+            setDate(newDateTime);
+            form.setValue(name, newDateTime, { shouldValidate: true });
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error handling time change:', error);
+    }
+  };
+
   return (
     <div className="flex w-full gap-4">
       <FormField
         control={form.control}
         name={name}
-        render={({ field: { value, onChange } }) => (
+        render={({ field: { value } }) => (
           <FormItem className="flex flex-col w-full">
             {label && <FormLabel>{label}</FormLabel>}
             <Popover open={isOpen} onOpenChange={setIsOpen}>
@@ -96,7 +157,7 @@ export default function DateTimePicker({
                     )}
                     type='button'
                   >
-                    {value ? (
+                    {value && isValid(value) ? (
                       `${format(value, "PPP")}, ${time}`
                     ) : (
                       <span>Pick a date</span>
@@ -110,23 +171,11 @@ export default function DateTimePicker({
                   mode="single"
                   captionLayout="dropdown"
                   selected={date ?? (value as Date)}
-                  onSelect={(selectedDate: Date | undefined) => {
-                    if (selectedDate) {
-                      const newTime = isSameDay(selectedDate, minDate!) ? getInitialValidTime() : time;
-                      const { hours, minutes } = parseTimeString(newTime);
-                      selectedDate.setHours(hours, minutes);
-                      setDate(selectedDate);
-                      setTime(newTime);
-                      onChange(selectedDate);
-                    } else if (!required) {
-                      setDate(null);
-                      onChange(null);
-                    }
-                  }}
+                  onSelect={handleDateSelect}
                   onDayClick={() => setIsOpen(false)}
                   fromYear={2000}
                   toYear={new Date().getFullYear() + 10}
-                  defaultMonth={value as Date}
+                  defaultMonth={value && isValid(value) ? value : new Date()}
                   disabled={(date) => {
                     if (minDate) {
                       return date < new Date(minDate.setHours(0, 0, 0, 0));
@@ -143,22 +192,13 @@ export default function DateTimePicker({
       <FormField
         control={form.control}
         name={name}
-        render={({ field: { value, onChange } }) => (
+        render={() => (
           <FormItem className="flex flex-col">
             <FormLabel>Time</FormLabel>
             <FormControl>
               <Select
                 value={time}
-                onValueChange={(newTime: string) => {
-                  setTime(newTime);
-                  if (date || value) {
-                    const { hours, minutes } = parseTimeString(newTime);
-                    const newDate = new Date(date?.getTime() ?? (value as Date).getTime());
-                    newDate.setHours(hours, minutes);
-                    setDate(newDate);
-                    onChange(newDate);
-                  }
-                }}
+                onValueChange={handleTimeChange}
               >
                 <SelectTrigger className="font-normal focus:ring-0 w-[120px]">
                   <SelectValue />

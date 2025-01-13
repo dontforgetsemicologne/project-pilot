@@ -56,4 +56,23 @@ export const commentRouter = createTRPCRouter({
 
             return ctx.db.comment.delete({ where: { id: input.id } });
         }),
+    getByTaskId: protectedProcedure
+        .input(z.string())
+        .query(async({ ctx, input }) => {
+            const comments = await ctx.db.comment.findMany({
+                where: { taskId: input },
+                include: {
+                  user: {
+                    select: {
+                      id: true,
+                      name: true,
+                      email: true,
+                      image: true,
+                    },
+                  },
+                },
+                orderBy: { createdAt: 'desc' },
+            });
+            return comments;
+        })
     });

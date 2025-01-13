@@ -11,7 +11,7 @@ export const userRouter = createTRPCRouter({
       return ctx.db.user.findMany();
     }),
   getById: protectedProcedure
-    .input(z.string())
+    .input(z.string().optional())
     .query(({ ctx, input }) => {
       return ctx.db.user.findUnique({ where: { id: input } });
     })

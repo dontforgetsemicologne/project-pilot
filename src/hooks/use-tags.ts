@@ -2,7 +2,7 @@ import { useState } from "react";
 
 interface Tag {
     id: string;
-    label: string;
+    name: string;
     color?: string;
 }
 
