@@ -29,7 +29,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useState } from "react";
 
 interface DataTableProps<TData> {
-    columns: ColumnDef<TData, any>[];
+    columns: ColumnDef<TData>[];
     data: TData[];
     onAdd: () => void;
     onEdit: (data: TData) => void;
@@ -88,9 +88,9 @@ export function DataTable<TData>({
             <div className="flex items-center justify-between">
                 <Input
                     placeholder="Filter..."
-                    value={table.getColumn(searchKey || 'title')?.getFilterValue() as string ?? ''}
+                    value={table.getColumn(searchKey ?? 'title')?.getFilterValue() as string ?? ''}
                     onChange={(event) => 
-                        table.getColumn(searchKey || 'title')?.setFilterValue(event.target.value)
+                        table.getColumn(searchKey ?? 'title')?.setFilterValue(event.target.value)
                     }
                     className="max-w-sm"
                 />
