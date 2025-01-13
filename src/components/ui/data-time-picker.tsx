@@ -44,9 +44,9 @@ export default function DateTimePicker({
 }: DateTimePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const form = useFormContext();
-  const fieldValue = form.watch(name);
+  const fieldValue = form.watch(name) as Date | undefined;
   const [time, setTime] = useState(() => {
-    if (fieldValue instanceof Date && isValid(fieldValue)) {
+    if (fieldValue && isValid(fieldValue)) {
       return `${fieldValue.getHours().toString().padStart(2, '0')}:${fieldValue.getMinutes().toString().padStart(2, '0')}`;
     }
     return "05:00";
@@ -122,7 +122,7 @@ export default function DateTimePicker({
       setTime(newTime);
       if (date || fieldValue) {
         const { hours, minutes } = parseTimeString(newTime);
-        const baseDate = date ?? (fieldValue instanceof Date ? fieldValue : null);
+        const baseDate = date ?? fieldValue;
         if (baseDate && isValid(baseDate)) {
           const newDateTime = new Date(baseDate.getTime());
           newDateTime.setHours(hours, minutes);
@@ -157,7 +157,7 @@ export default function DateTimePicker({
                     )}
                     type='button'
                   >
-                    {value instanceof Date && isValid(value) ? (
+                    {value && isValid(value) ? (
                       `${format(value, "PPP")}, ${time}`
                     ) : (
                       <span>Pick a date</span>
@@ -170,12 +170,12 @@ export default function DateTimePicker({
                 <Calendar
                   mode="single"
                   captionLayout="dropdown"
-                  selected={date ?? (value instanceof Date ? value : undefined)}
+                  selected={date ?? (value as Date)}
                   onSelect={handleDateSelect}
                   onDayClick={() => setIsOpen(false)}
                   fromYear={2000}
                   toYear={new Date().getFullYear() + 10}
-                  defaultMonth={value instanceof Date && isValid(value) ? value : new Date()}
+                  defaultMonth={value && isValid(value) ? value : new Date()}
                   disabled={(date) => {
                     if (minDate) {
                       return date < new Date(minDate.setHours(0, 0, 0, 0));
