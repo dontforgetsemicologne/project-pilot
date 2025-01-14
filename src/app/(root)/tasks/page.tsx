@@ -60,14 +60,15 @@ export default function TasksPage() {
   const updateTask = api.task.update.useMutation({
     onSuccess: () => {
       toast.success("Task updated successfully");
+      void tasks.refetch();
       setIsDialogOpen(false);
       setEditingTask(null);
-      void tasks.refetch();
     },
     onError: (error) => {
       toast.error(error.message);
     },
   });
+  
 
   const deleteTask = api.task.delete.useMutation({
     onSuccess: () => {
@@ -84,7 +85,8 @@ export default function TasksPage() {
   }
 
   const handleUpdate = async(updatedTask: Task) => {
-    await updateTask.mutateAsync(updatedTask);
+    const { id, ...updateData } = updatedTask;
+    await updateTask.mutateAsync({ id, ...updateData });
   }
 
   const handleDelete = async(id: string) => {
@@ -141,10 +143,27 @@ export default function TasksPage() {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-screen-sm p-4">
           <DialogHeader>
-            <DialogTitle>Add</DialogTitle>
+            <DialogTitle>{editingTask ? 'Edit Task' : 'Add Task'}</DialogTitle>
           </DialogHeader>
           <div>
-            <MyForm/>
+            <MyForm
+              key={editingTask?.id}
+              defaultValues={editingTask ? {
+                ...editingTask,
+                startDate: new Date(editingTask.startDate),
+                deadline: new Date(editingTask.deadline),
+                tags: editingTask.tags.map(tag => ({
+                  id: tag.id,
+                  name: tag.name,
+                  color: tag.color || 'blue'
+                }))
+              } : undefined}
+              onSuccess={() => {
+                setIsDialogOpen(false);
+                setEditingTask(null);
+                void tasks.refetch();
+              }}
+            />
           </div>
         </DialogContent>
       </Dialog>

@@ -31,10 +31,11 @@ import { Task } from "./types"
 import DateTimePicker from "@/components/ui/data-time-picker"
 
 const formSchema = z.object({
+    id: z.string().optional(),
     title: z.string().min(1),
     description: z.string().optional(),
     projectId: z.string().min(1),
-    teamId: z.string().optional(),
+    teamId: z.string().optional(    ),
     priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]).default('MEDIUM'),
     status: z.enum(["PENDING","IN_PROGRESS","REVIEW","COMPLETED"]).default('PENDING'),
     startDate: z.date(),
@@ -47,18 +48,54 @@ const formSchema = z.object({
     })).default([]),
 });
 
-export default function MyForm() {
+interface MyFormProps {
+    defaultValues?: Partial<z.infer<typeof formSchema>>;
+    onSuccess?: () => void;
+}
+
+export default function MyForm({ defaultValues, onSuccess }: MyFormProps) {
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const form = useForm<z.infer<typeof formSchema>> ({
+        resolver: zodResolver(formSchema),
+        defaultValues: {
+            ...defaultValues,
+            title: defaultValues?.title ?? "",
+            description: defaultValues?.description ?? "",
+            projectId: defaultValues?.projectId ?? "",
+            teamId: defaultValues?.teamId ?? "",
+            priority: defaultValues?.priority ?? "MEDIUM" as const,
+            status: defaultValues?.status ?? "PENDING" as const,
+            startDate: defaultValues?.startDate ?? new Date(),
+            deadline: defaultValues?.deadline ?? new Date(),
+            assignees: defaultValues?.assignees ?? [],
+            tags: defaultValues?.tags ?? []
+        },
+        mode: 'onChange'
+    });
+
     const addTask = api.task.create.useMutation({
         onSuccess: () => {
             console.log("Task created successfully");
             toast.success("Task created successfully");
             form.reset();
+            onSuccess?.();
         },
         onError: (error) => {
             console.error("Error creating task:", error);
             toast.error(error.message || "Failed to create task");
         }
     });
+
+    const updateTask = api.task.update.useMutation({
+        onSuccess: () => {
+            toast.success("Task updated successfully");
+            onSuccess?.();
+        },
+        onError: (error) => {
+            toast.error(error.message || "Failed to update task");
+        }
+    });
+
     const projects = api.project.getAll.useQuery();
     const createTeam = api.team.create.useMutation({});
     const tags = api.tag.getAll.useQuery();
@@ -68,26 +105,7 @@ export default function MyForm() {
         }
     });
 
-    const defaultValues = {
-        title: "",
-        description: "",
-        projectId: "",
-        teamId: undefined,
-        priority: "MEDIUM" as const,
-        status: "PENDING" as const,
-        startDate: new Date(),
-        deadline: new Date(),
-        assignees: [] as string[],
-        tags: [] as { id: string; label: string; color?: string }[]
-    };
-
-    const form = useForm<z.infer<typeof formSchema>> ({
-        resolver: zodResolver(formSchema),
-        defaultValues,
-        mode: 'onChange'
-    });
-
-    const [selectedProjectId, setSelectedProjectId] = useState<string>(defaultValues.projectId);
+    const [selectedProjectId, setSelectedProjectId] = useState<string>(defaultValues?.projectId ?? '');
     const selectedProject = projects.data?.find(project => project.id === selectedProjectId);
 
     const members = selectedProject?.members.map(member => ({
@@ -170,42 +188,60 @@ export default function MyForm() {
     };
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
-        console.log('Form values before submission:', values); 
+        console.log('Starting form submission with values:', values);
+        setIsSubmitting(true);
+
         try {
-            if (!selectedProjectId) {
+            if (!values.projectId) {
                 toast.error("Project is required");
                 return;
             }
 
-            if (!assignees || assignees.length === 0) {
+            if (!values.assignees || values.assignees.length === 0) {
                 toast.error("At least one assignee is required");
                 return;
             }
 
+            console.log('Selected Project:', selectedProject);
+            console.log('Current Assignees:', assignees);
+
+            // First, try to find an existing team
+            let teamId: string | undefined;
             const existingTeam = selectedProject?.teams?.find(team => {
-                return team.members.length === assignees.length &&
-                    assignees.every(assigneeId => team.members.some(member => member.id === assigneeId)) && team.members.every(member => assignees.includes(member.id));
+                const hasAllAssignees = values.assignees.every(assigneeId => 
+                    team.members.some(member => member.id === assigneeId)
+                );
+                const teamHasOnlySelectedMembers = team.members.every(member => 
+                    values.assignees.includes(member.id)
+                );
+                return hasAllAssignees && teamHasOnlySelectedMembers;
             });
 
-            let teamId: string;
             if (existingTeam) {
+                console.log('Found existing team:', existingTeam);
                 teamId = existingTeam.id;
             } else {
+                console.log('Creating new team for assignees:', assignees);
                 const newTeam = await createTeam.mutateAsync({
                     name: `Team for ${values.title}`,
                     description: '',
-                    projectId: selectedProjectId,
-                    members: assignees
+                    projectId: values.projectId,
+                    members: values.assignees
                 });
+
+                if (!newTeam?.id) {
+                    throw new Error("Team creation failed");
+                }
                 teamId = newTeam.id;
+                console.log('Created new team with ID:', teamId);
             }
 
-            console.log(teamId);
             if (!teamId) {
-                throw new Error("Failed to set teamId. Please try again.");
+                console.error('No team ID after team handling');
+                toast.error("Failed to assign team");
+                return;
             }
-            form.setValue('teamId', teamId);
-            
+
             const processedTags = await Promise.all(
                 values.tags.map(async (tag) => {
                     if (!tagSuggestions.find(s => s.id === tag.id)) {
@@ -222,25 +258,31 @@ export default function MyForm() {
                     return tag;
                 })
             );
-    
+
             const taskData = {
                 ...values,
                 teamId,
-                startDate: new Date(values.startDate),
-                deadline: new Date(values.deadline),
                 tags: processedTags
             };
-    
-            console.log('Task data before mutation:', taskData);
-            await addTask.mutateAsync(taskData);
+
+            console.log('Final task data before submission:', taskData);
+            if (defaultValues?.id) {
+                const { id, ...updateData } = { ...taskData, id: defaultValues.id };
+                console.log('Updating task with data:', { id, ...updateData });
+                await updateTask.mutateAsync({ id, ...updateData });
+            } else {
+                console.log('Creating new task with data:', taskData);
+                await addTask.mutateAsync(taskData);
+            }
+
+            toast.success(defaultValues?.id ? "Task updated successfully" : "Task created successfully");
+            form.reset();
+            onSuccess?.();
         } catch (error) {
             console.error("Form submission error:", error);
-            if (error instanceof z.ZodError) {
-                console.log('Validation errors:', error.errors);
-                toast.error("Form validation failed. Please check all fields.");
-            } else {
-                toast.error("Failed to submit the form. Please try again.");
-            }
+            toast.error(error instanceof Error ? error.message : "Failed to submit the form");
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -463,6 +505,7 @@ export default function MyForm() {
                         <Button 
                             type="button"
                             onClick={() => form.reset(defaultValues)}
+                            disabled={isSubmitting}
                         >
                             Clear
                         </Button>
@@ -475,8 +518,9 @@ export default function MyForm() {
                                 console.log('Form errors:', errors);
                                 console.log('Form values:', form.getValues());
                             }}
+                            disabled={isSubmitting}
                         >
-                            Submit
+                            {isSubmitting ? 'Submitting...' : 'Submit'}
                         </Button>
                     </div>
                 </div>

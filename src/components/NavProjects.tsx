@@ -22,6 +22,7 @@ import { Folder, Forward, MoreHorizontal, Trash2 } from "lucide-react";
 import CreateProject from "./CreateProject";
 import { Button } from "./ui/button";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 interface CreateProjectProps {
     userId: string;
@@ -29,11 +30,14 @@ interface CreateProjectProps {
 }
 
 export default function NavProjects({ userId, userName }: CreateProjectProps) {
+    const pathname = usePathname();
     const { isMobile } = useSidebar();
     const getProjects = api.project.getAll.useQuery();
     const deleteProject = api.project.delete.useMutation();
+
+    const isProjectActive = (projectId: string) => pathname?.startsWith(`/projects/${projectId}`)
     return(
-        <SidebarGroup className="group-data-[collapsible=icon]:hidden">
+        <SidebarGroup className="group-data-[collapsible=icon]:hidden" >
             <SidebarGroupLabel className="justify-between">
                 <Link href={'/projects'}>
                     Projects
@@ -61,10 +65,10 @@ export default function NavProjects({ userId, userName }: CreateProjectProps) {
                                     align={isMobile ? "end" : "start"}
                                 >
                                     <DropdownMenuItem>
-                                        <Folder className="text-muted-foreground" /><span>View Project</span>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem>
-                                        <Forward className="text-muted-foreground" /><span>Share Project</span>
+                                        <a href={`/projects/${item.id}`} className="flex flex-row gap-2">
+                                            <Folder className="text-muted-foreground" size={16}/>
+                                            <span>View Project</span>
+                                        </a>
                                     </DropdownMenuItem>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem>
@@ -72,8 +76,9 @@ export default function NavProjects({ userId, userName }: CreateProjectProps) {
                                             variant={'none'} 
                                             size={'none'}
                                             onClick={() => {deleteProject.mutate({ id: item.id})}}
+                                            className="flex flex-row gap-2"
                                         >
-                                            <Trash2 className="text-muted-foreground" /><span>Delete Project</span>
+                                            <Trash2 className="text-muted-foreground" size={16}/><span>Delete Project</span>
                                         </Button>
                                     </DropdownMenuItem>
                                 </DropdownMenuContent>

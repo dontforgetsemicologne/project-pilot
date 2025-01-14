@@ -1,7 +1,6 @@
 import * as React from "react"
 
 import { auth } from "@/server/auth";
-import { data } from '@/data'
 import { NavUser, type UserProps } from "@/components/NavUser"
 import {
   Sidebar,
@@ -10,9 +9,6 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar"
 import NavProjects from "@/components/NavProjects";
@@ -42,23 +38,6 @@ export default async function AppSidebar({ ...props }: React.ComponentProps<type
             <SidebarContent>
                 <SidebarGroup>
                     <SidebarGroupContent>
-                        <SidebarMenu>
-                            {
-                                data.nav.map((item) => (
-                                    <SidebarMenuItem key={item.name}>
-                                      <SidebarMenuButton
-                                        asChild
-                                        isActive={item.name === "Messages & media"}
-                                      >
-                                        <a href="#">
-                                          <item.icon />
-                                          <span>{item.name}</span>
-                                        </a>
-                                      </SidebarMenuButton>
-                                    </SidebarMenuItem>
-                                ))
-                            }
-                        </SidebarMenu>
                         <NavProjects 
                             userId={session?.user.id} 
                             userName={session?.user.name ?? "Unknown User"}

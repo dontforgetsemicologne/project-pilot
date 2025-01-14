@@ -133,8 +133,7 @@ export const createColumns = (): ColumnDef<Task>[] => {
               {tags.map((tag) => (
                 <Badge
                   key={tag.id}
-                  className="text-xs"
-                  style={{ backgroundColor: tag.color ?? "#e5e7eb" }}
+                  className={tag.color}
                 >
                   {tag.name}
                 </Badge>

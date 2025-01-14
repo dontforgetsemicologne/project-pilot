@@ -5,14 +5,6 @@ import {
   protectedProcedure,
 } from "@/server/api/trpc";
 
-import type { Task, User, Tag } from "@prisma/client";
-
-type TaskWithRelations = Task & {
-    project: { id: string };
-    assignees: (Pick<User, "id" | "name" | "image">)[];
-    tags: Tag[];
-};
-
 const idSchema = z.string().min(1);
 const dateSchema = z.date().optional();
 
@@ -142,6 +134,37 @@ export const taskRouter = createTRPCRouter({
                 },
             });
             return tasks;
+        }),
+    
+    getById: protectedProcedure
+        .input(z.object({ id: idSchema }))
+        .query(({ ctx, input }) => {
+            const task = ctx.db.task.findUnique({
+                where: {
+                    id: input.id,
+                },
+                include: {
+                    project: {
+                        select: {
+                            id: true,
+                        }
+                    },
+                    assignees: {
+                        select: {
+                            id: true,
+                            name: true,
+                            image: true
+                        }
+                    },
+                    tags: true,
+                    comments: {
+                        include: {
+                            user: true,
+                        },
+                    },
+                },
+            });
+            return task;
         }),
 
     delete: protectedProcedure
