@@ -1,17 +1,19 @@
 "use client"
 
+import type { 
+    ColumnDef,
+    ColumnFiltersState,
+    SortingState 
+} from '@tanstack/react-table'
+
 import {
     flexRender,
     getCoreRowModel,
     useReactTable,
-    ColumnFiltersState,
     getFilteredRowModel,
     getPaginationRowModel,
-    SortingState,
     getSortedRowModel,
 } from "@tanstack/react-table"
-
-import type { ColumnDef } from '@tanstack/react-table'
 
 import {
     Table,
@@ -79,7 +81,7 @@ export function DataTable<TData>({
     const handleMultiDelete = () => {
         const selectedItem = table
             .getFilteredSelectedRowModel()
-            .rows.map((row) => row.original as TData);
+            .rows.map((row) => row.original);
         onMultiDelete(selectedItem);
     }
 

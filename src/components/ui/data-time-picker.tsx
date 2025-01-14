@@ -88,7 +88,7 @@ export default function DateTimePicker({
   };
 
   useEffect(() => {
-    if (fieldValue && isValid(fieldValue)) { // Add validation check
+    if (fieldValue && isValid(fieldValue)) {
       const newTime = `${fieldValue.getHours().toString().padStart(2, '0')}:${fieldValue.getMinutes().toString().padStart(2, '0')}`;
       setTime(newTime);
       setDate(fieldValue);
@@ -143,51 +143,60 @@ export default function DateTimePicker({
       <FormField
         control={form.control}
         name={name}
-        render={({ field: { value } }) => (
-          <FormItem className="flex flex-col w-full">
-            {label && <FormLabel>{label}</FormLabel>}
-            <Popover open={isOpen} onOpenChange={setIsOpen}>
-              <PopoverTrigger asChild>
-                <FormControl>
-                  <Button
-                    variant={"outline"}
-                    className={cn(
-                      "w-full font-normal",
-                      !value && "text-muted-foreground"
-                    )}
-                    type='button'
-                  >
-                    {value && isValid(value) ? (
-                      `${format(value, "PPP")}, ${time}`
-                    ) : (
-                      <span>Pick a date</span>
-                    )}
-                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                  </Button>
-                </FormControl>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  captionLayout="dropdown"
-                  selected={date ?? (value as Date)}
-                  onSelect={handleDateSelect}
-                  onDayClick={() => setIsOpen(false)}
-                  fromYear={2000}
-                  toYear={new Date().getFullYear() + 10}
-                  defaultMonth={value && isValid(value) ? value : new Date()}
-                  disabled={(date) => {
-                    if (minDate) {
-                      return date < new Date(minDate.setHours(0, 0, 0, 0));
-                    }
-                    return false;
-                  }}
-                />
-              </PopoverContent>
-            </Popover>
-            <FormMessage />
-          </FormItem>
-        )}
+        render={({ field: { value } }) => {
+          const getDefaultMonth = (): Date => {
+            if (value && isValid(value as Date)) {
+              return value as Date;
+            }
+            return new Date();
+          };
+
+          return(
+            <FormItem className="flex flex-col w-full">
+              {label && <FormLabel>{label}</FormLabel>}
+              <Popover open={isOpen} onOpenChange={setIsOpen}>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      variant={"outline"}
+                      className={cn(
+                        "w-full font-normal",
+                        !value && "text-muted-foreground"
+                      )}
+                      type='button'
+                    >
+                      {value && isValid(value as Date) ? (
+                        `${format(value, "PPP")}, ${time}`
+                      ) : (
+                        <span>Pick a date</span>
+                      )}
+                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    captionLayout="dropdown"
+                    selected={date ?? (value as Date)}
+                    onSelect={handleDateSelect}
+                    onDayClick={() => setIsOpen(false)}
+                    fromYear={2000}
+                    toYear={new Date().getFullYear() + 10}
+                    defaultMonth={getDefaultMonth()}
+                    disabled={(date) => {
+                      if (minDate) {
+                        return date < new Date(minDate.setHours(0, 0, 0, 0));
+                      }
+                      return false;
+                    }}
+                  />
+                </PopoverContent>
+              </Popover>
+              <FormMessage />
+            </FormItem>
+          )
+        }}
       />
       <FormField
         control={form.control}
